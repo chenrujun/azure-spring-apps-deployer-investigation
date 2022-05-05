@@ -1,0 +1,27 @@
+
+logging:
+  level:
+    root: INFO
+server:
+  port: 8080
+spring:
+  profiles:
+    active: develop
+  security:
+    oauth2:
+      client: # Refs: https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-boot-property-mappings
+        provider:
+          azure-active-directory:
+            authorization-uri: https://login.microsoftonline.com/common/oauth2/v2.0/authorize # Refs: https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-v2-protocols
+            jwk-set-uri: https://login.microsoftonline.com/common/discovery/v2.0/keys
+            token-uri: https://login.microsoftonline.com/common/oauth2/v2.0/token
+            user-name-attribute: name
+        registration:
+          azure:
+            provider: azure-active-directory
+            authorization-grant-type: authorization_code
+            client-id:
+            client-secret:
+            scope: openid, profile, offline_access, https://management.azure.com/user_impersonation # Refs: https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+            redirect-uri: http://localhost:8080/login/oauth2/code/
+
