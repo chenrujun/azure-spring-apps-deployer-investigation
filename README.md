@@ -14,10 +14,20 @@ This repository is used to investigate deploying to Azure Spring Apps with one e
 ```
 6. Access the URL you got in previous step, you will get response successfully. It means the application has deployed to Azure Spring Cloud successfully.
 
+# Workaround in Current Implementation
 
 Check the source code of `AzureSpringAppsDeployerService#deployAzureSpringApps`. There are 2 ways to get source code file:
 1. https://github.com/weidongxu-microsoft/azure-sdk-for-java-management-tests/raw/master/spring-cloud/piggymetrics.tar.gz
 2. https://github.com/chenrujun/azure-spring-apps-deployer-target-application/archive/refs/heads/master.tar.gz
 
 `1` can work but `2` can not. Because after unzipping the second file, all files are included in a folder. To use the source-code deploy, there should be a file like "pom.xml" in the root path. All files included in a folder will hide the "pom.xml" file.
+
+# Further steps:
+
+1. Fix the problem: GitHub downloaded tar.gz file contains a root folder, which make it can not be deployed directly.
+2. Support deploy by clicking button in GitHub README. Get GitHub url by [Referer header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) instead of request parameter.
+3. Support choosing `subscription / resource-group / Azure Spring Cloud service` before deploy.
+4. Make module name optional. Support single module project.
+5. Give more information when deploying. For example, show deploy status.
+6. Support open the deployed app automatically.
 
