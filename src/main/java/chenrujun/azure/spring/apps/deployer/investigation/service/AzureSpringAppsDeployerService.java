@@ -1,5 +1,6 @@
 package chenrujun.azure.spring.apps.deployer.investigation.service;
 
+import chenrujun.azure.spring.apps.deployer.investigation.util.ArchiverUtil;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenCredential;
 import com.azure.core.http.policy.HttpLogDetailLevel;
@@ -23,6 +24,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 
 @Service
@@ -59,7 +62,7 @@ public class AzureSpringAppsDeployerService {
             String springServiceName,
             String SpringAppName,
             String accessToken) {
-        File sourceCodeTar = getSourceCodeTarGz(sourceCodeUrl);
+        File sourceCodeTar = getSourceCodeTarGzAndRemoveRootFolderIfNecessary(sourceCodeUrl);
         AzureResourceManager manager = toAzureResourceManager(accessToken);
         ResourceGroup resourceGroup = manager.resourceGroups()
                 .define(resourceGroupName)
@@ -99,19 +102,23 @@ public class AzureSpringAppsDeployerService {
         return request -> Mono.just(new AccessToken(accessToken, OffsetDateTime.MAX)); // TODO not use MAX
     }
 
-    private static File getSourceCodeTarGz(String url) {
-        File zipFile = new File("sourceCode.tar.gz");
+    private static File getSourceCodeTarGzAndRemoveRootFolderIfNecessary(String url) {
+        File sourceCodeTarGz;
         try {
+            Path tempDirectory = Files.createTempDirectory("AzureSpringAppsDeployerService_");
+            File downloadedFile = tempDirectory.resolve("downloaded.tar.gz").toFile();
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.connect();
             try (InputStream inputStream = connection.getInputStream();
-                 OutputStream outputStream = new FileOutputStream(zipFile)) {
+                 OutputStream outputStream = new FileOutputStream(downloadedFile)) {
                 IOUtils.copy(inputStream, outputStream);
             }
             connection.disconnect();
+            sourceCodeTarGz = tempDirectory.resolve("sourceCode.tar.gz").toFile();
+            ArchiverUtil.removeRootFolderInTarFile(downloadedFile, sourceCodeTarGz);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return zipFile;
+        return sourceCodeTarGz;
     }
 }
